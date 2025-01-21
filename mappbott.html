@@ -1,35 +1,51 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта задержаний</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
-    <script>
-        let map;
-
-        function initMap() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 50.4501, lng: 30.5245 }, // Координаты Киева
-                zoom: 12,
-            });
-
-            const marker = new google.maps.Marker({
-                position: { lat: 50.4501, lng: 30.5245 },
-                map: map,
-                title: "Пример метки",
-            });
-        }
-    </script>
+    <title>Карта Киева</title>
     <style>
-        #map {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map-container {
+            position: relative;
+            width: 100vw;
             height: 100vh;
-            width: 100%;
+            background: url('https://github.com/AnvilBrain/Avengers/blob/main/mainmap.png') no-repeat center center;
+            background-size: cover;
+        }
+        .marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 <body>
-    <h1>Места задержаний</h1>
-    <div id="map"></div>
+    <div id="map-container">
+        <!-- Основные районы Киева -->
+        <div class="marker" style="top: 50%; left: 50%;" title="Центр Киева (Хрещатик)"></div>
+        <div class="marker" style="top: 42%; left: 48%;" title="Подольский район"></div>
+        <div class="marker" style="top: 36%; left: 46%;" title="Оболонский район"></div>
+        <div class="marker" style="top: 56%; left: 60%;" title="Дарницкий район"></div>
+        <div class="marker" style="top: 52%; left: 52%;" title="Печерский район"></div>
+        <div class="marker" style="top: 54%; left: 40%;" title="Святошинский район"></div>
+        <div class="marker" style="top: 40%; left: 58%;" title="Деснянский район"></div>
+        <div class="marker" style="top: 55%; left: 48%;" title="Соломенский район"></div>
+        <div class="marker" style="top: 62%; left: 50%;" title="Голосеевский район"></div>
+        <!-- Дополнительные серые места -->
+        <div class="marker" style="top: 45%; left: 55%;" title="Троещина"></div>
+        <div class="marker" style="top: 65%; left: 48%;" title="Теремки"></div>
+        <div class="marker" style="top: 35%; left: 50%;" title="Минский массив"></div>
+        <div class="marker" style="top: 60%; left: 55%;" title="Харьковский массив"></div>
+        <div class="marker" style="top: 48%; left: 46%;" title="Сырец"></div>
+        <div class="marker" style="top: 52%; left: 44%;" title="Нивки"></div>
+        <div class="marker" style="top: 50%; left: 40%;" title="Академгородок"></div>
+    </div>
 </body>
 </html>
