@@ -4,48 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Карта Киева</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
         }
         #map-container {
-            position: relative;
             width: 100vw;
             height: 100vh;
-            background: url('https://raw.githubusercontent.com/AnvilBrain/Avengers/main/mainmap.png') no-repeat center center;
-            background-size: contain; /* Чтобы карта сохраняла пропорции */
-        }
-        .marker {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 <body>
-    <div id="map-container">
-        <!-- Основные районы Киева -->
-        <div class="marker" style="top: 50%; left: 50%;" title="Центр Киева (Хрещатик)"></div>
-        <div class="marker" style="top: 42%; left: 48%;" title="Подольский район"></div>
-        <div class="marker" style="top: 36%; left: 46%;" title="Оболонский район"></div>
-        <div class="marker" style="top: 56%; left: 60%;" title="Дарницкий район"></div>
-        <div class="marker" style="top: 52%; left: 52%;" title="Печерский район"></div>
-        <div class="marker" style="top: 54%; left: 40%;" title="Святошинский район"></div>
-        <div class="marker" style="top: 40%; left: 58%;" title="Деснянский район"></div>
-        <div class="marker" style="top: 55%; left: 48%;" title="Соломенский район"></div>
-        <div class="marker" style="top: 62%; left: 50%;" title="Голосеевский район"></div>
-        <!-- Дополнительные серые места -->
-        <div class="marker" style="top: 45%; left: 55%;" title="Троещина"></div>
-        <div class="marker" style="top: 65%; left: 48%;" title="Теремки"></div>
-        <div class="marker" style="top: 35%; left: 50%;" title="Минский массив"></div>
-        <div class="marker" style="top: 60%; left: 55%;" title="Харьковский массив"></div>
-        <div class="marker" style="top: 48%; left: 46%;" title="Сырец"></div>
-        <div class="marker" style="top: 52%; left: 44%;" title="Нивки"></div>
-        <div class="marker" style="top: 50%; left: 40%;" title="Академгородок"></div>
-    </div>
+    <div id="map-container"></div>
+
+    <script>
+        // Инициализация карты
+        const map = L.map('map-container').setView([50.4501, 30.5234], 13); // Координаты Киева, зум 13
+
+        // Добавление слоя карты OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Пример добавления маркеров
+        const markers = [
+            { lat: 50.4501, lon: 30.5234, title: "Центр Киева (Хрещатик)" },
+            { lat: 50.4662, lon: 30.5193, title: "Подольский район" },
+            { lat: 50.5220, lon: 30.4984, title: "Оболонский район" },
+            { lat: 50.3951, lon: 30.6390, title: "Дарницкий район" },
+            { lat: 50.4210, lon: 30.5404, title: "Печерский район" },
+            { lat: 50.4521, lon: 30.4112, title: "Святошинский район" },
+            { lat: 50.5081, lon: 30.6233, title: "Деснянский район" },
+            { lat: 50.4264, lon: 30.4777, title: "Соломенский район" },
+            { lat: 50.3675, lon: 30.4970, title: "Голосеевский район" }
+        ];
+
+        // Добавление маркеров на карту
+        markers.forEach(({ lat, lon, title }) => {
+            L.marker([lat, lon]).addTo(map).bindPopup(title);
+        });
+    </script>
 </body>
 </html>
