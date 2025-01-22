@@ -10,42 +10,54 @@
         body {
             margin: 0;
             padding: 0;
+            font-family: Arial, sans-serif;
         }
 
         /* Прямоугольник с кнопками */
         .header {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
-            background-color: white;
+            background: linear-gradient(90deg, #007bff, #00c6ff); /* Градиентный фон */
             width: 100%;
-            height: 60px; /* Высота прямоугольника */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            height: 70px;
             position: fixed; /* Фиксируется сверху */
             top: 0;
             z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень */
         }
 
         .header button {
             flex: 1;
-            text-align: center;
+            max-width: 200px; /* Ограничение ширины кнопок */
+            margin: 0 10px;
+            padding: 10px 20px;
             font-size: 1rem;
-            padding: 10px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: black;
             font-weight: bold;
+            text-transform: uppercase;
+            background: white;
+            border: none;
+            border-radius: 20px; /* Скругление углов */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Легкая тень кнопок */
+            cursor: pointer;
+            transition: all 0.3s ease; /* Анимация */
+        }
+
+        .header button:hover {
+            transform: scale(1.1); /* Увеличение при наведении */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Увеличение тени */
         }
 
         .header button.active {
-            border-bottom: 2px solid #007bff; /* Активная вкладка с синей полоской */
+            background: #007bff; /* Синяя кнопка */
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Более выраженная тень */
         }
 
         #map-container {
             width: 100vw;
-            height: calc(100vh - 60px); /* Уменьшаем высоту карты на высоту прямоугольника */
-            margin-top: 60px; /* Отступ для фиксации сверху */
+            height: calc(100vh - 70px); /* Уменьшаем высоту карты на высоту прямоугольника */
+            margin-top: 70px; /* Отступ для фиксации сверху */
         }
     </style>
 </head>
