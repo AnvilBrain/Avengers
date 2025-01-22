@@ -99,6 +99,26 @@
             mapContainer.style.display = 'none'; // Скрыть карту
             alert('Список ещё не реализован.'); // Тестовая функция
         });
+
+        // Загрузка меток из API
+        async function loadMarkers() {
+            try {
+                const response = await fetch('http://your-server-url/get_markers/');
+                if (!response.ok) throw new Error("Не удалось загрузить метки.");
+                const markers = await response.json();
+
+                markers.forEach(marker => {
+                    L.marker([marker.latitude, marker.longitude])
+                        .addTo(map)
+                        .bindPopup(marker.text);
+                });
+            } catch (error) {
+                console.error("Ошибка загрузки меток:", error);
+            }
+        }
+
+        // Загрузка меток при инициализации карты
+        loadMarkers();
     </script>
 </body>
 </html>
