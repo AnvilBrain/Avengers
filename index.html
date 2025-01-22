@@ -11,13 +11,52 @@
             margin: 0;
             padding: 0;
         }
+
+        /* Прямоугольник с кнопками */
+        .header {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: white;
+            width: 100%;
+            height: 60px; /* Высота прямоугольника */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Легкая тень */
+            position: fixed; /* Фиксируется сверху */
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header button {
+            flex: 1;
+            text-align: center;
+            font-size: 1rem;
+            padding: 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: black;
+            font-weight: bold;
+        }
+
+        .header button.active {
+            border-bottom: 2px solid #007bff; /* Активная вкладка с синей полоской */
+        }
+
         #map-container {
             width: 100vw;
-            height: 100vh;
+            height: calc(100vh - 60px); /* Уменьшаем высоту карты на высоту прямоугольника */
+            margin-top: 60px; /* Отступ для фиксации сверху */
         }
     </style>
 </head>
 <body>
+    <!-- Прямоугольник с кнопками -->
+    <div class="header">
+        <button id="map-tab" class="active">Карта</button>
+        <button id="list-tab">Список</button>
+    </div>
+
+    <!-- Карта -->
     <div id="map-container"></div>
 
     <script>
@@ -30,22 +69,23 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Пример добавления маркеров
-        const markers = [
-            { lat: 50.4501, lon: 30.5234, title: "Центр Киева (Хрещатик)" },
-            { lat: 50.4662, lon: 30.5193, title: "Подольский район" },
-            { lat: 50.5220, lon: 30.4984, title: "Оболонский район" },
-            { lat: 50.3951, lon: 30.6390, title: "Дарницкий район" },
-            { lat: 50.4210, lon: 30.5404, title: "Печерский район" },
-            { lat: 50.4521, lon: 30.4112, title: "Святошинский район" },
-            { lat: 50.5081, lon: 30.6233, title: "Деснянский район" },
-            { lat: 50.4264, lon: 30.4777, title: "Соломенский район" },
-            { lat: 50.3675, lon: 30.4970, title: "Голосеевский район" }
-        ];
+        // Кнопки переключения
+        const mapTab = document.getElementById('map-tab');
+        const listTab = document.getElementById('list-tab');
+        const mapContainer = document.getElementById('map-container');
 
-        // Добавление маркеров на карту
-        markers.forEach(({ lat, lon, title }) => {
-            L.marker([lat, lon]).addTo(map).bindPopup(title);
+        // Переключение вкладок
+        mapTab.addEventListener('click', () => {
+            mapTab.classList.add('active');
+            listTab.classList.remove('active');
+            mapContainer.style.display = 'block'; // Показать карту
+        });
+
+        listTab.addEventListener('click', () => {
+            listTab.classList.add('active');
+            mapTab.classList.remove('active');
+            mapContainer.style.display = 'none'; // Скрыть карту
+            alert('Список ещё не реализован.'); // Тестовая функция
         });
     </script>
 </body>
