@@ -96,7 +96,7 @@
         async function loadMarkers() {
             try {
                 // Замените на актуальный URL вашего сервера
-                const response = await fetch('https://ed2e-95-109-145-24.ngrok-free.app/get_markers/');
+                const response = await fetch('https://de11-95-109-145-24.ngrok-free.app/get_markers/');
                 if (!response.ok) throw new Error("Не удалось загрузить метки.");
                 const markers = await response.json();
 
