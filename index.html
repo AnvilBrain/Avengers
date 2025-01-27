@@ -100,21 +100,43 @@
         // Функция загрузки координат и добавления меток
         async function loadMarkers() {
             try {
+                // Отправляем запрос к серверу
                 const response = await fetch('https://648d-95-109-145-24.ngrok-free.app/get_data');
-                if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+                
+                // Логируем статус ответа
+                console.log(`HTTP статус ответа: ${response.status}`);
 
-                const markers = await response.json();
+                // Проверяем, что ответ успешный
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка: ${response.status}`);
+                }
+
+                // Получаем полный текст ответа
+                const textResponse = await response.text();
+                console.log("Ответ сервера (как текст):", textResponse);
+
+                // Преобразуем текст в JSON
+                let markers;
+                try {
+                    markers = JSON.parse(textResponse);
+                    console.log("Ответ сервера (как JSON):", markers);
+                } catch (jsonError) {
+                    throw new Error(`Ошибка парсинга JSON: ${jsonError.message}`);
+                }
 
                 // Очистка предыдущих меток
+                console.log("Очищаем старые метки...");
                 markersGroup.clearLayers();
 
-                // Добавляем новые метки только по координатам
+                // Добавление новых меток
                 markers.forEach(marker => {
+                    console.log(`Добавляем метку: [${marker.latitude}, ${marker.longitude}]`);
                     L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
                 });
 
                 console.log("Метки успешно обновлены.");
             } catch (error) {
+                // Логируем ошибку
                 console.error("Ошибка загрузки меток:", error);
             }
         }
