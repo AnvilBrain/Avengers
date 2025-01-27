@@ -101,33 +101,27 @@
         async function loadMarkers() {
             try {
                 const response = await fetch('https://648d-95-109-145-24.ngrok-free.app/get_data');
-                if (!response.ok) throw new Error("Не удалось загрузить метки.");
+                if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+
                 const markers = await response.json();
 
                 // Очистка предыдущих меток
                 markersGroup.clearLayers();
 
-                // Добавление новых меток
+                // Добавляем новые метки только по координатам
                 markers.forEach(marker => {
-                    const redIcon = L.icon({
-                        iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-red.png',
-                        iconSize: [38, 38],
-                        iconAnchor: [22, 38],
-                        popupAnchor: [-3, -76]
-                    });
-
-                    L.marker([marker.latitude, marker.longitude], { icon: redIcon })
-                        .addTo(markersGroup)
-                        .bindPopup(marker.text);
+                    L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
                 });
+
+                console.log("Метки успешно обновлены.");
             } catch (error) {
                 console.error("Ошибка загрузки меток:", error);
             }
         }
 
-        // Периодическая загрузка меток каждые 5 секунд
-        loadMarkers(); // Загрузка меток при запуске
-        setInterval(loadMarkers, 5000); // Повторять каждые 5 секунд
+        // Периодическая загрузка меток
+        loadMarkers(); // Загрузка меток при старте
+        setInterval(loadMarkers, 5000); // Обновляем каждые 5 секунд
     </script>
 </body>
 </html>
