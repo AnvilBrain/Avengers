@@ -77,11 +77,11 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Обработка переключения между вкладками
         const mapTab = document.getElementById('map-tab');
         const listTab = document.getElementById('list-tab');
         const mapContainer = document.getElementById('map-container');
 
+        // Переключение вкладок
         mapTab.addEventListener('click', () => {
             mapTab.classList.add('active');
             listTab.classList.remove('active');
@@ -95,6 +95,8 @@
             alert('Список ещё не реализован.');
         });
 
+        let markersGroup = L.layerGroup().addTo(map); // Группа для меток
+
         // Функция загрузки координат и добавления меток
         async function loadMarkers() {
             try {
@@ -102,26 +104,30 @@
                 if (!response.ok) throw new Error("Не удалось загрузить метки.");
                 const markers = await response.json();
 
-                // Добавление красных меток на карту
+                // Очистка предыдущих меток
+                markersGroup.clearLayers();
+
+                // Добавление новых меток
                 markers.forEach(marker => {
-                    L.marker([marker.latitude, marker.longitude], {
-                        icon: L.icon({
-                            iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-red.png',
-                            iconSize: [38, 38],
-                            iconAnchor: [22, 38],
-                            popupAnchor: [-3, -76]
-                        })
-                    })
-                    .addTo(map)
-                    .bindPopup(marker.text);
+                    const redIcon = L.icon({
+                        iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-red.png',
+                        iconSize: [38, 38],
+                        iconAnchor: [22, 38],
+                        popupAnchor: [-3, -76]
+                    });
+
+                    L.marker([marker.latitude, marker.longitude], { icon: redIcon })
+                        .addTo(markersGroup)
+                        .bindPopup(marker.text);
                 });
             } catch (error) {
                 console.error("Ошибка загрузки меток:", error);
             }
         }
 
-        // Загрузка меток при загрузке страницы
-        loadMarkers();
+        // Периодическая загрузка меток каждые 5 секунд
+        loadMarkers(); // Загрузка меток при запуске
+        setInterval(loadMarkers, 5000); // Повторять каждые 5 секунд
     </script>
 </body>
 </html>
