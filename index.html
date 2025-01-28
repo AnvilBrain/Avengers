@@ -59,40 +59,61 @@
             margin-top: 70px;
         }
 
-        #popup-container {
+        #popup {
             position: fixed;
             bottom: -100%;
             left: 0;
             width: 100%;
-            background: white;
-            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+            height: 30%;
+            background: #ffffff;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 20px 20px 0 0;
-            transition: bottom 0.3s ease;
             padding: 20px;
-            z-index: 1001;
+            box-sizing: border-box;
+            transition: bottom 0.3s ease-in-out;
+            z-index: 2000;
         }
 
-        #popup-close {
+        #popup h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #popup p {
+            margin: 10px 0 0;
+            font-size: 1rem;
+        }
+
+        #popup .close-btn {
             position: absolute;
             top: 10px;
-            right: 20px;
-            background: transparent;
-            border: none;
+            right: 15px;
             font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff0000;
+            background: none;
+            border: none;
             cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        #popup .close-btn:hover {
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
     <div class="header">
         <button id="map-tab" class="active">Карта</button>
+        <button id="list-tab">Список</button>
     </div>
 
     <div id="map-container"></div>
-
-    <div id="popup-container">
-        <button id="popup-close">&times;</button>
-        <div id="popup-content"></div>
+    <div id="popup">
+        <button class="close-btn" onclick="closePopup()">×</button>
+        <h3>Детали метки</h3>
+        <p id="popup-content">Здесь будет отображаться текст метки</p>
     </div>
 
     <script>
@@ -104,16 +125,9 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        let markersGroup = L.layerGroup().addTo(map);
+        let markersGroup = L.layerGroup().addTo(map); // Группа для меток
 
-        const popupContainer = document.getElementById('popup-container');
-        const popupContent = document.getElementById('popup-content');
-        const popupClose = document.getElementById('popup-close');
-
-        popupClose.addEventListener('click', () => {
-            popupContainer.style.bottom = '-100%';
-        });
-
+        // Функция загрузки координат и добавления меток
         async function loadMarkers() {
             try {
                 const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data', {
@@ -122,25 +136,39 @@
                     }
                 });
 
-                if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
-                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
 
+                const markers = await response.json();
                 markersGroup.clearLayers();
 
-                data.forEach(item => {
-                    if (item.latitude && item.longitude) {
-                        const marker = L.marker([item.latitude, item.longitude]).addTo(markersGroup);
-                        marker.on('click', () => {
-                            popupContent.textContent = item.text || 'Без текста';
-                            popupContainer.style.bottom = '0';
-                        });
+                markers.forEach(marker => {
+                    if (marker.latitude && marker.longitude && marker.text) {
+                        const mapMarker = L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
+                        mapMarker.on('click', () => showPopup(marker.text));
                     }
                 });
             } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
+                console.error("Ошибка загрузки меток:", error);
             }
         }
 
+        // Функция показа всплывающего окна
+        function showPopup(text) {
+            const popup = document.getElementById('popup');
+            const popupContent = document.getElementById('popup-content');
+            popupContent.textContent = text;
+            popup.style.bottom = '0';
+        }
+
+        // Функция закрытия всплывающего окна
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.bottom = '-100%';
+        }
+
+        // Периодическая загрузка меток
         loadMarkers();
         setInterval(loadMarkers, 5000);
     </script>
