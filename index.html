@@ -11,7 +11,6 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
         }
 
         .header {
@@ -69,7 +68,6 @@
             padding: 20px;
             overflow-y: auto;
             background: #ffffff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         #list-container ul {
@@ -86,6 +84,49 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 1rem;
         }
+
+        #popup {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: #ffffff;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: bottom 0.3s ease-in-out;
+            z-index: 2000;
+        }
+
+        #popup h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #popup p {
+            margin: 10px 0 0;
+            font-size: 1rem;
+        }
+
+        #popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff0000;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        #popup .close-btn:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -98,6 +139,12 @@
     <div id="list-container">
         <h3>Список текстовых запросов</h3>
         <ul id="text-list"></ul>
+    </div>
+
+    <div id="popup">
+        <button class="close-btn" onclick="closePopup()">×</button>
+        <h3>Детали метки</h3>
+        <p id="popup-content">Здесь будет отображаться текст метки</p>
     </div>
 
     <script>
@@ -115,7 +162,15 @@
         const listContainer = document.getElementById('list-container');
         const textList = document.getElementById('text-list');
 
-        // Переключение вкладок
+        const redIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
         mapTab.addEventListener('click', () => {
             mapTab.classList.add('active');
             listTab.classList.remove('active');
@@ -128,29 +183,20 @@
             mapTab.classList.remove('active');
             mapContainer.style.display = 'none';
             listContainer.style.display = 'block';
-
-            // Загрузка текстовых запросов
             await loadTextRequests();
         });
 
-        let markersGroup = L.layerGroup().addTo(map); // Группа для меток
+        let markersGroup = L.layerGroup().addTo(map);
 
-        // Функция загрузки данных с сервера
         async function fetchData() {
             const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data', {
-                headers: {
-                    'ngrok-skip-browser-warning': 'true'
-                }
+                headers: { 'ngrok-skip-browser-warning': 'true' }
             });
 
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера: ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
             return response.json();
         }
 
-        // Функция загрузки меток
         async function loadMarkers() {
             try {
                 const markers = await fetchData();
@@ -158,8 +204,8 @@
 
                 markers.forEach(marker => {
                     if (marker.latitude && marker.longitude && marker.text) {
-                        const mapMarker = L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
-                        mapMarker.on('click', () => alert(marker.text)); // Можете добавить всплывающее окно
+                        const mapMarker = L.marker([marker.latitude, marker.longitude], { icon: redIcon }).addTo(markersGroup);
+                        mapMarker.on('click', () => showPopup(marker.text));
                     }
                 });
             } catch (error) {
@@ -167,17 +213,16 @@
             }
         }
 
-        // Функция загрузки текстовых запросов
         async function loadTextRequests() {
             try {
                 const requests = await fetchData();
-                textList.innerHTML = ''; // Очищаем список
+                textList.innerHTML = '';
 
                 requests
-                    .filter(request => !request.latitude && !request.longitude) // Фильтруем запросы без геолокации
+                    .filter(request => !request.latitude && !request.longitude)
                     .forEach(request => {
                         const li = document.createElement('li');
-                        li.textContent = `${request.text}`;
+                        li.textContent = request.text;
                         textList.appendChild(li);
                     });
             } catch (error) {
@@ -185,7 +230,18 @@
             }
         }
 
-        // Периодическая загрузка меток
+        function showPopup(text) {
+            const popup = document.getElementById('popup');
+            const popupContent = document.getElementById('popup-content');
+            popupContent.textContent = text;
+            popup.style.bottom = '0';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.bottom = '-100%';
+        }
+
         loadMarkers();
         setInterval(loadMarkers, 5000);
     </script>
