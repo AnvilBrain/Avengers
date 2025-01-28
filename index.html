@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта Киева</title>
+    <title>Карта и Список</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -53,19 +53,42 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
         }
 
-        #map-container {
+        #map-container, #list-container {
             width: 100vw;
             height: calc(100vh - 70px);
             margin-top: 70px;
+            display: none;
+        }
+
+        #map-container {
+            display: block;
+        }
+
+        #list-container {
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .list-item {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .list-item time {
+            display: block;
+            font-size: 0.8rem;
+            color: gray;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <button id="map-tab" class="active">Карта</button>
+        <button id="list-tab">Список</button>
     </div>
 
     <div id="map-container"></div>
+    <div id="list-container"></div>
 
     <script>
         // Инициализация карты
@@ -79,11 +102,30 @@
 
         let markersGroup = L.layerGroup().addTo(map); // Группа для меток
 
+        const mapTab = document.getElementById('map-tab');
+        const listTab = document.getElementById('list-tab');
+        const mapContainer = document.getElementById('map-container');
+        const listContainer = document.getElementById('list-container');
+
+        // Переключение вкладок
+        mapTab.addEventListener('click', () => {
+            mapTab.classList.add('active');
+            listTab.classList.remove('active');
+            mapContainer.style.display = 'block';
+            listContainer.style.display = 'none';
+        });
+
+        listTab.addEventListener('click', () => {
+            listTab.classList.add('active');
+            mapTab.classList.remove('active');
+            mapContainer.style.display = 'none';
+            listContainer.style.display = 'block';
+        });
+
         // Функция загрузки данных с сервера
-        async function loadMarkers() {
+        async function loadData() {
             try {
-                // URL сервера с данными о геолокации
-                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data_with_location', {
+                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_all_data', {
                     headers: {
                         'ngrok-skip-browser-warning': 'true' // Пропускаем страницу предупреждения ngrok
                     }
@@ -93,35 +135,32 @@
                     throw new Error(`Ошибка HTTP: ${response.status}`);
                 }
 
-                // Парсим ответ сервера в JSON
-                const markers = await response.json();
+                const data = await response.json();
 
-                // Логируем ответ
-                console.log("Полученные данные:", markers);
-
-                // Очищаем старые метки
+                // Обновляем метки на карте
                 markersGroup.clearLayers();
-
-                // Добавляем метки на карту
-                markers.forEach(marker => {
-                    if (marker.latitude && marker.longitude) {
-                        L.marker([marker.latitude, marker.longitude])
-                            .addTo(markersGroup)
-                            .bindPopup(`<b>Запрос №${marker.request_number || "N/A"}</b><br>${marker.text || "Нет текста"}`);
-                    } else {
-                        console.warn("Пропущена метка с некорректными координатами:", marker);
-                    }
+                data.filter(item => item.latitude && item.longitude).forEach(marker => {
+                    L.marker([marker.latitude, marker.longitude])
+                        .addTo(markersGroup)
+                        .bindPopup(`<b>${marker.text || "Нет текста"}</b>`);
                 });
 
-                console.log("Метки успешно обновлены.");
+                // Обновляем список
+                listContainer.innerHTML = '';
+                data.filter(item => !item.latitude || !item.longitude).forEach(item => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `<b>${item.text || "Нет текста"}</b><time>${item.time}</time>`;
+                    listContainer.appendChild(listItem);
+                });
             } catch (error) {
-                console.error("Ошибка загрузки меток:", error);
+                console.error("Ошибка загрузки данных:", error);
             }
         }
 
-        // Загрузка меток каждые 5 секунд
-        loadMarkers(); // Загрузка при старте
-        setInterval(loadMarkers, 5000); // Периодическая загрузка
+        // Периодическая загрузка данных
+        loadData(); // Загрузка при старте
+        setInterval(loadData, 5000); // Обновляем каждые 5 секунд
     </script>
 </body>
 </html>
