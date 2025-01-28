@@ -59,47 +59,24 @@
             margin-top: 70px;
         }
 
-        #popup {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            width: 100%;
-            height: 30%;
-            background: #ffffff;
-            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 20px 20px 0 0;
+        #list-container {
+            display: none;
             padding: 20px;
-            box-sizing: border-box;
-            transition: bottom 0.3s ease-in-out;
-            z-index: 2000;
+            margin-top: 70px;
         }
 
-        #popup h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        #popup p {
-            margin: 10px 0 0;
-            font-size: 1rem;
-        }
-
-        #popup .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #ff0000;
-            background: none;
-            border: none;
+        .list-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
         }
 
-        #popup .close-btn:hover {
-            transform: scale(1.2);
+        .list-item:hover {
+            background: #e9ecef;
         }
     </style>
 </head>
@@ -110,11 +87,7 @@
     </div>
 
     <div id="map-container"></div>
-    <div id="popup">
-        <button class="close-btn" onclick="closePopup()">×</button>
-        <h3>Детали метки</h3>
-        <p id="popup-content">Здесь будет отображаться текст метки</p>
-    </div>
+    <div id="list-container"></div>
 
     <script>
         const map = L.map('map-container').setView([50.4501, 30.5234], 13);
@@ -125,10 +98,29 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        let markersGroup = L.layerGroup().addTo(map); // Группа для меток
+        const mapTab = document.getElementById('map-tab');
+        const listTab = document.getElementById('list-tab');
+        const mapContainer = document.getElementById('map-container');
+        const listContainer = document.getElementById('list-container');
 
-        // Функция загрузки координат и добавления меток
-        async function loadMarkers() {
+        // Переключение вкладок
+        mapTab.addEventListener('click', () => {
+            mapTab.classList.add('active');
+            listTab.classList.remove('active');
+            mapContainer.style.display = 'block';
+            listContainer.style.display = 'none';
+        });
+
+        listTab.addEventListener('click', () => {
+            listTab.classList.add('active');
+            mapTab.classList.remove('active');
+            mapContainer.style.display = 'none';
+            listContainer.style.display = 'block';
+        });
+
+        let markersGroup = L.layerGroup().addTo(map);
+
+        async function loadMarkersAndList() {
             try {
                 const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data', {
                     headers: {
@@ -136,41 +128,44 @@
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Ошибка сервера: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`Ошибка сервера: ${response.status}`);
+                const data = await response.json();
 
-                const markers = await response.json();
                 markersGroup.clearLayers();
+                listContainer.innerHTML = '';
 
-                markers.forEach(marker => {
-                    if (marker.latitude && marker.longitude && marker.text) {
-                        const mapMarker = L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
-                        mapMarker.on('click', () => showPopup(marker.text));
+                data.forEach((item, index) => {
+                    if (item.latitude && item.longitude) {
+                        // Добавляем маркер на карту
+                        const marker = L.marker([item.latitude, item.longitude]).addTo(markersGroup);
+                        marker.bindPopup(`${item.text || 'Без текста'}`);
+
+                        // Добавляем элемент списка
+                        const listItem = document.createElement('div');
+                        listItem.className = 'list-item';
+                        listItem.textContent = `${item.text || 'Без текста'} (${index + 1})`;
+                        listContainer.appendChild(listItem);
+
+                        // Добавляем обработчик клика для синхронизации
+                        listItem.addEventListener('click', () => {
+                            map.setView([item.latitude, item.longitude], 15);
+                            marker.openPopup();
+                        });
+                    } else {
+                        // Если нет геолокации, добавляем только в список
+                        const listItem = document.createElement('div');
+                        listItem.className = 'list-item';
+                        listItem.textContent = `${item.text || 'Без текста'} (${index + 1})`;
+                        listContainer.appendChild(listItem);
                     }
                 });
             } catch (error) {
-                console.error("Ошибка загрузки меток:", error);
+                console.error('Ошибка загрузки данных:', error);
             }
         }
 
-        // Функция показа всплывающего окна
-        function showPopup(text) {
-            const popup = document.getElementById('popup');
-            const popupContent = document.getElementById('popup-content');
-            popupContent.textContent = text;
-            popup.style.bottom = '0';
-        }
-
-        // Функция закрытия всплывающего окна
-        function closePopup() {
-            const popup = document.getElementById('popup');
-            popup.style.bottom = '-100%';
-        }
-
-        // Периодическая загрузка меток
-        loadMarkers();
-        setInterval(loadMarkers, 5000);
+        loadMarkersAndList();
+        setInterval(loadMarkersAndList, 5000);
     </script>
 </body>
 </html>
