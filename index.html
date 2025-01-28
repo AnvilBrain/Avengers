@@ -136,26 +136,14 @@
 
                 data.forEach((item, index) => {
                     if (item.latitude && item.longitude) {
-                        // Добавляем маркер на карту
+                        // Если есть геолокация, добавляем маркер на карту
                         const marker = L.marker([item.latitude, item.longitude]).addTo(markersGroup);
                         marker.bindPopup(`${item.text || 'Без текста'}`);
-
-                        // Добавляем элемент списка
-                        const listItem = document.createElement('div');
-                        listItem.className = 'list-item';
-                        listItem.textContent = `${item.text || 'Без текста'} (${index + 1})`;
-                        listContainer.appendChild(listItem);
-
-                        // Добавляем обработчик клика для синхронизации
-                        listItem.addEventListener('click', () => {
-                            map.setView([item.latitude, item.longitude], 15);
-                            marker.openPopup();
-                        });
                     } else {
                         // Если нет геолокации, добавляем только в список
                         const listItem = document.createElement('div');
                         listItem.className = 'list-item';
-                        listItem.textContent = `${item.text || 'Без текста'} (${index + 1})`;
+                        listItem.textContent = `${item.text || 'Без текста'} (${new Date().toLocaleString()})`;
                         listContainer.appendChild(listItem);
                     }
                 });
