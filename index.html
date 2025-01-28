@@ -91,23 +91,20 @@
     <div id="list-container"></div>
 
     <script>
-        // Инициализация карты
         const map = L.map('map-container').setView([50.4501, 30.5234], 13);
 
-        // Установка карты OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        let markersGroup = L.layerGroup().addTo(map); // Группа для меток
+        let markersGroup = L.layerGroup().addTo(map);
 
         const mapTab = document.getElementById('map-tab');
         const listTab = document.getElementById('list-tab');
         const mapContainer = document.getElementById('map-container');
         const listContainer = document.getElementById('list-container');
 
-        // Переключение вкладок
         mapTab.addEventListener('click', () => {
             mapTab.classList.add('active');
             listTab.classList.remove('active');
@@ -122,59 +119,42 @@
             listContainer.style.display = 'block';
         });
 
-        // Функция загрузки данных с сервера
         async function loadData() {
             try {
-                // Запрос данных с геолокацией
-                const responseWithLocation = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data_with_location', {
+                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data', {
                     headers: {
                         'ngrok-skip-browser-warning': 'true'
                     }
                 });
 
-                if (!responseWithLocation.ok) {
-                    throw new Error(`Ошибка HTTP: ${responseWithLocation.status}`);
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
                 }
 
-                const markers = await responseWithLocation.json();
+                const data = await response.json();
 
-                // Обновляем метки на карте
                 markersGroup.clearLayers();
-                markers.forEach(marker => {
-                    L.marker([marker.latitude, marker.longitude])
-                        .addTo(markersGroup)
-                        .bindPopup(`<b>${marker.text || "Нет текста"}</b><br><i>${marker.time}</i>`);
-                });
-
-                // Запрос текстовых данных
-                const responseText = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_text_data', {
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true'
-                    }
-                });
-
-                if (!responseText.ok) {
-                    throw new Error(`Ошибка HTTP: ${responseText.status}`);
-                }
-
-                const textData = await responseText.json();
-
-                // Обновляем список
                 listContainer.innerHTML = '';
-                textData.forEach(item => {
-                    const listItem = document.createElement('div');
-                    listItem.className = 'list-item';
-                    listItem.innerHTML = `<b>${item.text || "Нет текста"}</b><time>${item.time}</time>`;
-                    listContainer.appendChild(listItem);
+
+                data.forEach(item => {
+                    if (item.latitude && item.longitude) {
+                        L.marker([item.latitude, item.longitude])
+                            .addTo(markersGroup)
+                            .bindPopup(`<b>${item.text || "Нет текста"}</b><br><i>${item.time}</i>`);
+                    } else {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'list-item';
+                        listItem.innerHTML = `<b>${item.text || "Нет текста"}</b><time>${item.time}</time>`;
+                        listContainer.appendChild(listItem);
+                    }
                 });
             } catch (error) {
                 console.error("Ошибка загрузки данных:", error);
             }
         }
 
-        // Периодическая загрузка данных
-        loadData(); // Загрузка при старте
-        setInterval(loadData, 5000); // Обновляем каждые 5 секунд
+        loadData();
+        setInterval(loadData, 5000);
     </script>
 </body>
 </html>
