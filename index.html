@@ -63,6 +63,7 @@
 <body>
     <div class="header">
         <button id="map-tab" class="active">Карта</button>
+        <button id="list-tab">Список</button>
     </div>
 
     <div id="map-container"></div>
@@ -76,34 +77,56 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        const mapTab = document.getElementById('map-tab');
+        const listTab = document.getElementById('list-tab');
+        const mapContainer = document.getElementById('map-container');
+
+        // Переключение вкладок
+        mapTab.addEventListener('click', () => {
+            mapTab.classList.add('active');
+            listTab.classList.remove('active');
+            mapContainer.style.display = 'block';
+        });
+
+        listTab.addEventListener('click', () => {
+            listTab.classList.add('active');
+            mapTab.classList.remove('active');
+            mapContainer.style.display = 'none';
+            alert('Список ещё не реализован.');
+        });
+
         let markersGroup = L.layerGroup().addTo(map); // Группа для меток
 
-        // Функция загрузки данных с сервера
+        // Функция загрузки координат и добавления меток
         async function loadMarkers() {
             try {
-                // URL сервера с данными о геолокации
-                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data_with_location', {
+                // Отправляем запрос к серверу с обходом страницы подтверждения
+                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data', {
                     headers: {
-                        'ngrok-skip-browser-warning': 'true' // Пропускаем страницу предупреждения ngrok
+                        'ngrok-skip-browser-warning': 'true' // Пропускаем страницу предупреждения
                     }
                 });
 
+                // Логируем статус ответа
+                console.log(HTTP статус ответа: ${response.status});
                 if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                    throw new Error(HTTP ошибка: ${response.status});
                 }
 
-                // Парсим ответ сервера в JSON
+                // Преобразуем текст ответа в JSON
                 const markers = await response.json();
+                console.log("Ответ сервера (как JSON):", markers);
 
                 // Очищаем старые метки
                 markersGroup.clearLayers();
 
-                // Добавляем метки на карту
+                // Добавляем новые метки
                 markers.forEach(marker => {
                     if (marker.latitude && marker.longitude) {
-                        L.marker([marker.latitude, marker.longitude])
-                            .addTo(markersGroup)
-                            .bindPopup(`Текст: ${marker.text || "Нет текста"}`);
+                        console.log(Добавляем метку: [${marker.latitude}, ${marker.longitude}]);
+                        L.marker([marker.latitude, marker.longitude]).addTo(markersGroup);
+                    } else {
+                        console.warn("Пропущена метка с некорректными координатами:", marker);
                     }
                 });
 
@@ -113,9 +136,9 @@
             }
         }
 
-        // Загрузка меток каждые 5 секунд
-        loadMarkers(); // Загрузка при старте
-        setInterval(loadMarkers, 5000); // Периодическая загрузка
+        // Периодическая загрузка меток
+        loadMarkers(); // Загрузка меток при старте
+        setInterval(loadMarkers, 5000); // Обновляем каждые 5 секунд
     </script>
 </body>
 </html>
