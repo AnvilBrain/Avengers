@@ -125,29 +125,43 @@
         // Функция загрузки данных с сервера
         async function loadData() {
             try {
-                const response = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_all_data', {
+                // Запрос данных с геолокацией
+                const responseWithLocation = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_data_with_location', {
                     headers: {
-                        'ngrok-skip-browser-warning': 'true' // Пропускаем страницу предупреждения ngrok
+                        'ngrok-skip-browser-warning': 'true'
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                if (!responseWithLocation.ok) {
+                    throw new Error(`Ошибка HTTP: ${responseWithLocation.status}`);
                 }
 
-                const data = await response.json();
+                const markers = await responseWithLocation.json();
 
                 // Обновляем метки на карте
                 markersGroup.clearLayers();
-                data.filter(item => item.latitude && item.longitude).forEach(marker => {
+                markers.forEach(marker => {
                     L.marker([marker.latitude, marker.longitude])
                         .addTo(markersGroup)
-                        .bindPopup(`<b>${marker.text || "Нет текста"}</b>`);
+                        .bindPopup(`<b>${marker.text || "Нет текста"}</b><br><i>${marker.time}</i>`);
                 });
+
+                // Запрос текстовых данных
+                const responseText = await fetch('https://4e28-95-109-145-24.ngrok-free.app/get_text_data', {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+
+                if (!responseText.ok) {
+                    throw new Error(`Ошибка HTTP: ${responseText.status}`);
+                }
+
+                const textData = await responseText.json();
 
                 // Обновляем список
                 listContainer.innerHTML = '';
-                data.filter(item => !item.latitude || !item.longitude).forEach(item => {
+                textData.forEach(item => {
                     const listItem = document.createElement('div');
                     listItem.className = 'list-item';
                     listItem.innerHTML = `<b>${item.text || "Нет текста"}</b><time>${item.time}</time>`;
